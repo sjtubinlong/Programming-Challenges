@@ -1,9 +1,6 @@
-#include <iostream>
-using namespace std;
-
 class Solution {
 public:
-    static int jump(int A[], int n) {
+    int jump(int A[], int n) {
         // Start typing your C/C++ solution below
         // DO NOT write int main() function
         if(n==0 || n==1 )return 0;
@@ -37,15 +34,3 @@ public:
         return step;
     }
 };
-
-int main()
-{
-    int N;
-    int data[128];
-    cin>>N;
-    for( int i = 0; i != N; ++i)
-        cin>>data[i];
-    int result = Solution::jump( data, N );
-    cout<<result<<endl;
-    return 0;
-}
