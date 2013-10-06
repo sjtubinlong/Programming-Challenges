@@ -1,3 +1,4 @@
+//4sum....nima 点解木有n sum
 class Solution {
 public:
     vector<vector<int> > fourSum(vector<int> &num, int target) {
