@@ -23,13 +23,13 @@ public:
         cur[k] = '(';
         stk.push(cur[k]);
         dfs( k+1, n, cur, result, stk );
-        if( !stk.empty() ) stk.pop();
+        if( !stk.empty() ) stk.pop();//backtrace
         cur[k] = ')';
         if( stk.empty() ) return;
         char c = stk.top();
         stk.pop();
         if( c != '(' ) return;
         dfs( k+1, n, cur, result, stk );
-        stk.push(c);
+        stk.push(c);//backtrace
     }
 };
