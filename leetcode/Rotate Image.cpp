@@ -1,3 +1,20 @@
+/*
+(i,i)----------(i,n-i-1)
+  |                |
+  |                |
+  |                |
+(n-i-1, i)-----(n-i-1, n-i-1)
+
+(    i,j    )----------( j, n-i-1 )
+      |                     | 
+      |                     |
+      |                     |
+      |                     |
+(  n-j-1, i )----------(n-i-1, n-j-1)
+
+
+*/
+
 class Solution {
 public:
     void rotate(vector<vector<int> > &matrix) {
