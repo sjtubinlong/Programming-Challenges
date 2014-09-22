@@ -1,3 +1,23 @@
+/*
+1. A line in 2D space can be demostrated by the following formula:
+            slope = dy/dx = (y - y0)/(x - x0)
+   so we can use two integers to denote a line's slope.
+
+2. All the points in the same line has the equal lowest term fraction slope, 
+   divide by the greatest common divisor.
+
+3. Every two points can definetely determine a line, thus we can count lines by scanning
+   all the possible points couples.
+
+4. Points with the same cordinate are considered as two different points.
+
+5. Even if there exist only one single point, it is also on a line.
+
+6. slope = (0, 0) = (x - x0, y - y0)  imply there exist a 
+   dunplicate point of the current base point.
+   
+*/
+
 class Solution {
 public:
 
@@ -25,6 +45,7 @@ public:
                 }
                 slopes.push_back(pair<int, int>(dx, dy));
             }
+            // sort by distance
             sort(slopes.begin(), slopes.end());
             int cur_count = 2;
             for( int k = 1; k < slopes.size(); ++k ){
