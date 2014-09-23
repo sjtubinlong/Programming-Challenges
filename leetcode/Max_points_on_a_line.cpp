@@ -15,6 +15,9 @@
 
 6. slope = (0, 0) = (x - x0, y - y0)  imply there exist a 
    dunplicate point of the current base point.
+
+7. Slopes of lines parallel to x-axis are all convert to (1, 0) form.
+   (0, 1) for y-axis.
    
 */
 
