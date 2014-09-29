@@ -93,6 +93,16 @@ int search(ac_node* root, const char* str){
     return 0;
 }
 
+void free_ac(ac_node* root){
+    if(root == NULL) return;
+    for(int i = 0; i < CMAX; ++i){
+        if(root->next[i] != NULL){
+            free_ac(root->next[i]);
+        }
+    }
+    delete root;
+}
+
 char* fgets_wrapper(char* buffer, size_t size, FILE* fp){
     if(fgets(buffer, size, fp) != 0){
         int pos = 0;
@@ -132,5 +142,6 @@ int main(){
         }
     }
     printf("total: %d\n", count);
+    free_ac(ac_automata);
     return 0;
 }
