@@ -1,3 +1,10 @@
+// Fix bug of the following test case:
+// 3
+// abc
+// pabcf
+// xxx
+// xxpabcm
+
 # include <stdio.h>
 # include <string.h>
 
@@ -6,15 +13,16 @@ const int PMAX = 501;
 const int MAX_LEN_INPUT = 10001;
 const int MAX_LEN_PATTERN = 100001;
 
-bool visit[PMAX];
+bool visit[MAX_LEN_PATTERN];
 bool matched = false;
 
 class ac_node{
 public:
     int id;
+    int count;
     ac_node* fail;
     ac_node* next[CMAX];
-    ac_node(): id(-1), fail(NULL){
+    ac_node(): id(-1), count(0), fail(NULL){
         for(int i = 0; i < CMAX; ++i){
             next[i] = NULL;
         }
@@ -26,7 +34,9 @@ int tail = 0;
 ac_node* Q[MAX_LEN_PATTERN];
 
 int insert(ac_node* &root, const char* str, int id){
-    if(!root) root = new ac_node();
+    if(root == NULL){
+        root = new ac_node();
+    }
     ac_node* cur = root;
     for(int i = 0; str[i] != '\0'; ++i){
         int k = str[i];
@@ -36,6 +46,7 @@ int insert(ac_node* &root, const char* str, int id){
         cur = cur->next[k];
     }
     cur->id = id;
+    cur->count++;
     return 0;
 }
 
@@ -82,8 +93,11 @@ int search(ac_node* root, const char* str){
         cur = cur->next[k];
         if(cur == NULL) cur = root;
         ac_node* temp = cur;
-        while(temp != root && temp->id != -1){
-            if(!visit[temp->id]){
+        while(temp != root){
+            if(temp->id != -1 && visit[temp->id]){
+                break;
+            }
+            if(temp->count > 0){
                 matched = true;
                 visit[temp->id] = true;
             }
