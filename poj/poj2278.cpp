@@ -1,8 +1,3 @@
-/*
-m (0 <= m <= 10), n (1 <= n <=2000000000)
-l 0 to 10
-mod 100000
-*/
 # include <iostream>
 # include <cstring>
 # include <string>
