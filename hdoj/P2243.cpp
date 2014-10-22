@@ -5,17 +5,19 @@
 
 using namespace std;
 
+typedef unsigned long long ull;
+
 const int NMAX = 50;
 const int CMAX = 26;
 const int PMAX = 6;
 
-typedef unsigned long long ull;
 class Matrix{
 public:
     int n;
-    unsigned long long d[NMAX][NMAX];
+    ull d[NMAX][NMAX];
 public:
-    Matrix(int _n): n(_n){
+    Matrix(int _n): n(_n)
+    {
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
                 d[i][j] = 0;
@@ -23,7 +25,8 @@ public:
         }
     }
 
-    Matrix operator+(const Matrix& _M)const{
+    Matrix operator+(const Matrix& _M) const
+    {
         Matrix R(n);
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
@@ -33,7 +36,8 @@ public:
         return R;
     }
 
-    Matrix& operator+=(const Matrix& _M){
+    Matrix& operator+=(const Matrix& _M)
+    {
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
                 d[i][j] += _M.d[i][j];
@@ -42,7 +46,8 @@ public:
         return *this;
     }
 
-    Matrix operator*(const Matrix& _M) const{
+    Matrix operator*(const Matrix& _M) const
+    {
         Matrix R(n);
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
@@ -54,7 +59,8 @@ public:
         return R;
     }
 
-    Matrix& operator*=(const Matrix& _M){
+    Matrix& operator*=(const Matrix& _M)
+    {
         Matrix R(n);
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
@@ -67,7 +73,8 @@ public:
         return *this;
     }
     
-    Matrix& operator=(const Matrix& _M){
+    Matrix& operator=(const Matrix& _M)
+    {
         n = _M.n;
         for(int i = 0; i < n; ++i){
             for(int j = 0; j < n; ++j){
@@ -77,10 +84,8 @@ public:
         return *this;
     }
 
-    Matrix operator^(unsigned long long k) const{
-        if(k == 1){
-            return *this;
-        }
+    Matrix operator^(ull k) const
+    {
         Matrix A = *this;
         Matrix B = *this;
         for(--k; k; k >>= 1){
@@ -92,8 +97,8 @@ public:
         return A;
     }
 
-    Matrix power_sum(unsigned long long k) const{
-        if(k == 1) return *this;
+    Matrix power_sum(ull k) const
+    {
         Matrix R = *this;
         Matrix T = *this;
         int highest = 31;
@@ -104,152 +109,138 @@ public:
                 R = R + T * R + T * T * (*this);
                 T = T * T * (*this);
             }else{
+                //S(2n) = S(n) + T^n*S(n)
                 R = R + R*T;
                 T = T * T;
             }
-        } 
+        }
         return R;
     }
-    
-    void print() const{
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                printf(" %llu", d[i][j]);
+};
+
+class AcAuto {
+private:
+    struct TNode {
+        bool invalid;
+        int fail;
+        int next[CMAX];
+    } Trie[NMAX];
+    int size;
+    int root;
+public:
+    void init()
+    {
+        root = 0;
+        size = 1;
+        for(int i = 0; i < NMAX; ++i){
+            Trie[i].invalid = false;
+            Trie[i].fail = -1;
+            for(int j = 0; j < CMAX; ++j){
+                Trie[i].next[j] = -1;
             }
-            printf("\n");
         }
+    }
+
+    void insert(const string& str)
+    {
+        int cur = root;
+        for(int i = 0; i < str.size(); ++i){
+            int k = str[i] - 'a';
+            if(Trie[cur].next[k] == -1){
+                Trie[cur].next[k] = size++;
+            }
+            cur = Trie[cur].next[k];
+        }
+        Trie[cur].invalid = true;
+    }
+
+    void build_fail() 
+    {
+        int head = 0, tail = 0;
+        int Q[NMAX];
+        for(int i = 0; i < CMAX; ++i){
+            if(Trie[root].next[i] != -1){
+                Trie[Trie[root].next[i]].fail = root;
+                Q[tail++] = Trie[root].next[i];
+            }
+        }
+        while(head != tail){
+            int cur = Q[head++];
+            for(int i = 0; i < CMAX; ++i){
+                if(Trie[cur].next[i] != -1){
+                    int p = Trie[cur].fail;
+                    while(p != -1){
+                        if(Trie[p].next[i] != -1){
+                            Trie[Trie[cur].next[i]].fail = Trie[p].next[i];
+                            Trie[Trie[cur].next[i]].invalid |= Trie[Trie[p].next[i]].invalid;
+                            break;
+                        }
+                        p = Trie[p].fail;
+                    }
+                    if(p == -1) Trie[Trie[cur].next[i]].fail = root;
+                    Q[tail++] = Trie[cur].next[i];
+                }
+            }
+        }
+    }
+
+    Matrix build_states()
+    {
+        Matrix R(size);
+        for(int i = 0; i < size; ++i){
+            if(Trie[i].invalid) continue;
+            for(int j = 0; j < CMAX; ++j){
+                if(Trie[i].next[j] != -1){
+                    if(Trie[Trie[i].next[j]].invalid) continue;
+                    R.d[i][Trie[i].next[j]]++;
+                }else{
+                    int p = Trie[i].fail;
+                    while(p != -1){
+                        if(Trie[p].next[j] != -1 ){
+                            if(!Trie[Trie[p].next[j]].invalid){
+                                R.d[i][Trie[p].next[j]]++;
+                            }
+                            break;
+                        }
+                        p = Trie[p].fail;
+                    }
+                    if(p == -1) R.d[i][root]++;
+                }
+            }
+        }
+        return R;
     }
 };
 
-struct Node {
-    int exists;
-    int fail;
-    int next[CMAX];
-    Node(): exists(0), fail(-1){
-        for(int i = 0; i < CMAX; ++i){
-            next[i] = -1;
-        }
-    }
-};
-
-Node Trie[NMAX];
-int root = 0;
-int size = 1;
-
-void insert(const char* str) {
-    int cur = root;
-    for(int i = 0; str[i] != '\0'; ++i){
-        int k = str[i] - 'a';
-        if(Trie[cur].next[k] == -1){
-            Trie[cur].next[k] = size++;
-        }
-        cur = Trie[cur].next[k];
-    }
-    Trie[cur].exists = 1;
-}
-
-int Q[NMAX];
-int head = 0;
-int tail = 0;
-
-void build_fail(){
-    head = tail = 0;
-    Trie[root].exists = 0;
-    for(int i = 0; i < CMAX; ++i){
-        if(Trie[root].next[i] != -1){
-            Trie[Trie[root].next[i]].fail = root;
-            Q[tail++] = Trie[root].next[i];
-        }
-    }
-    while(head != tail){
-        int cur = Q[head++];
-        Trie[cur].exists |= Trie[Trie[cur].fail].exists;
-        for(int i = 0; i < CMAX; ++i){
-            if(Trie[cur].next[i] != -1){
-                int p = Trie[cur].fail;
-                while(p != -1){
-                    if(Trie[p].next[i] != -1){
-                        Trie[Trie[cur].next[i]].fail = Trie[p].next[i];
-                        break;
-                    }
-                    p = Trie[p].fail;
-                }
-                if(p == -1) Trie[Trie[cur].next[i]].fail = root;
-                Q[tail++] = Trie[cur].next[i];
-            }
-        }
-    }
-}
-
-void init_matrix(Matrix& M){
-    for(int i = 0; i < size; ++i){
-        if(Trie[i].exists) continue;
-        for(int j = 0; j < CMAX; ++j){
-            int cur = Trie[i].next[j];
-            if(cur != -1){
-                if(!Trie[cur].exists){
-                    M.d[i][cur]++;
-                }
-            }else{
-                int p = Trie[i].fail;
-                while( p != -1 ){
-                    if( Trie[p].next[j] != -1){
-                        if(!Trie[Trie[p].next[j]].exists)
-                            M.d[i][Trie[p].next[j]]++;
-                        break;
-                    }
-                    p = Trie[p].fail;
-                }
-                if(p == -1) M.d[i][root]++;
-            }
-        }
-    }
-}
-
-ull solve(ull L, Matrix& M){
-    Matrix R = M.power_sum(L);
-    //R.print();
-    ull num = 0;
-    for(ull i = 0; i < R.n; ++i){
-        num += R.d[0][i];
-    }
-    R.n = 1;
-    R.d[0][0] = 26;
+ull solve(Matrix& R, ull L)
+{
     Matrix T = R.power_sum(L);
-    ull total = 0;
-    for(ull i = 0; i < T.n; ++i){
-        total += T.d[0][i];
+    ull num = 0;
+    for(int i = 0; i < T.n; ++i){
+        num += T.d[0][i];
     }
+    ull total = 0;
+    T.n = 1;
+    T.d[0][0] = 26;
+    T = T.power_sum(L);
+    total = T.d[0][0];
     return total - num;
 }
 
-void reset_trie(){
-    for(int i = 0; i < NMAX; ++i){
-        Trie[i].exists = 0;
-        Trie[i].fail = -1;
-        for(int j = 0; j < CMAX; ++j){
-            Trie[i].next[j] = -1;
-        }
-    }
-}
-
-
 int main(){
     ull N, L;
-    char word[PMAX];
+    AcAuto ac_auto;
+    string word;
     while(cin>>N>>L){
-        reset_trie();
-        root = 0;
-        size = 1;
+        ac_auto.init();
         for(int i = 0; i < N; ++i){
-            scanf("%s", word);
-            insert(word);
+            cin>>word;
+            ac_auto.insert(word);
         }
-        build_fail();
-        Matrix M(size);
-        init_matrix(M);
-        //cout << solve(L, M) << endl;
-        printf("%I64u\n", solve(L, M));
+        ac_auto.build_fail();
+        Matrix R = ac_auto.build_states();
+        //cout << solve(R, L) << endl;
+        printf("%I64u\n", solve(R, L));
     }
     return 0;
 }
