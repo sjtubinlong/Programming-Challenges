@@ -1,161 +1,141 @@
-// Fix bug of the following test case:
-// 3
-// abc
-// pabcf
-// xxx
-// xxpabcm
+# include <iostream>
+# include <vector>
+# include <queue>
+# include <string>
 
-# include <stdio.h>
-# include <string.h>
+using namespace std;
 
 const int CMAX = 128;
-const int PMAX = 501;
-const int MAX_LEN_INPUT = 10001;
-const int MAX_LEN_PATTERN = 100001;
+const int PMAXN = 100001;
 
-bool visit[MAX_LEN_PATTERN];
-bool matched = false;
+bool visited[PMAXN];
 
-class ac_node{
-public:
-    int id;
-    int count;
-    ac_node* fail;
-    ac_node* next[CMAX];
-    ac_node(): id(-1), count(0), fail(NULL){
+int total = 0;
+
+struct Ac_Automoton {
+    struct TNode {
+        int id;
+        TNode* fail;
+        TNode* next[CMAX];
+        TNode(): id(0), fail(NULL)
+        {
+            for(int i = 0; i < CMAX; ++i){
+                next[i] = NULL;
+            }
+        }
+    };
+
+    TNode* root;
+    int size;
+
+    void init()
+    {
+        root = new TNode();
+        size = 1;
+    }
+
+    void insert(const string& str, int id)
+    {
+        TNode* cur = root;
+        for(int i = 0; str[i] != '\0'; ++i){
+            int k = str[i];
+            if(cur->next[k] == NULL){
+                cur->next[k] = new TNode();
+                ++size;
+            }
+            cur = cur->next[k];
+        }
+        cur->id = id;
+    }
+
+    void build_fail()
+    {
+        queue<TNode*> Q;
         for(int i = 0; i < CMAX; ++i){
-            next[i] = NULL;
+            if(root->next[i] != NULL){
+                root->next[i]->fail = root;
+                Q.push(root->next[i]);
+            }
+        }
+
+        while(!Q.empty()){
+            TNode* cur = Q.front();
+            Q.pop();
+            for(int i = 0; i < CMAX; ++i){
+                if(cur->next[i] != NULL){
+                    TNode* p = cur->fail;
+                    while(p != NULL){
+                        if(p->next[i] != NULL){
+                            cur->next[i]->fail = p->next[i];
+                            break;
+                        }
+                        p = p->fail;
+                    }
+                    if(p == NULL) cur->next[i]->fail = root;
+                    Q.push(cur->next[i]);
+                }
+            }
         }
     }
+
+    void query(const string& buff, int cid)
+    {
+        bool matched = false;
+        memset(visited, false, sizeof(visited));
+        TNode* cur = root;
+        for(int i = 0; buff[i] != '\0'; ++i){
+            int k = buff[i];
+            TNode* p = cur;
+            while(p != NULL){
+                if(p->next[k] != NULL) break;
+                p = p->fail;
+            }
+            if(p == NULL) {
+                cur = root;
+                continue;
+            }
+            cur = p->next[k];
+            while(p != NULL){
+                if(p->next[k] && p->next[k]->id){
+                    if(visited[p->next[k]->id]) break;
+                    matched = true;
+                    visited[p->next[k]->id] = true;
+                }
+                p = p->fail;
+            }
+        }
+        if(matched) {
+            ++total;
+            cout << "web " << cid << ":";
+            for(int i = 0; i < PMAXN; ++i){
+                if(visited[i]){
+                    cout << " "<< i;
+                }
+            }
+            cout << endl;
+        }
+    }
+
 };
 
-int head = 0;
-int tail = 0;
-ac_node* Q[MAX_LEN_PATTERN];
+int main()
+{
+    int n;
+    string buff;
+    Ac_Automoton ac_trie;
+    ac_trie.init();
 
-int insert(ac_node* &root, const char* str, int id){
-    if(root == NULL){
-        root = new ac_node();
+    cin>>n;
+    for(int i = 0; i < n; ++i){
+        cin>>buff;
+        ac_trie.insert(buff, i + 1);
     }
-    ac_node* cur = root;
-    for(int i = 0; str[i] != '\0'; ++i){
-        int k = str[i];
-        if(cur->next[k] == NULL) {
-            cur->next[k] = new ac_node();
-        }
-        cur = cur->next[k];
+    ac_trie.build_fail();
+    cin>>n;
+    for(int i = 0; i < n; ++i){
+        cin>>buff;
+        ac_trie.query(buff, i + 1);
     }
-    cur->id = id;
-    cur->count++;
-    return 0;
-}
-
-int build_fail(ac_node* root){
-    if(root == NULL) return -1;
-    root->fail = NULL;
-    head = tail = 0;
-    for(int i = 0; i < CMAX; ++i){
-        if(root->next[i] != NULL){
-            root->next[i]->fail = root;
-            Q[tail++] = root->next[i];
-        }
-    }
-    while(head != tail){
-        ac_node* cur = Q[head++];
-        for(int i = 30; i < CMAX; ++i){
-            if(cur->next[i] != NULL){
-                Q[tail++] = cur->next[i];
-                ac_node* cur_fail = cur->fail;
-                while( cur_fail != NULL){
-                    if(cur_fail->next[i] != NULL){
-                        cur->next[i]->fail = cur_fail->next[i];
-                        break;
-                    }
-                    cur_fail = cur_fail->fail;
-                }
-                if(cur_fail == NULL){
-                    cur->next[i]->fail = root;
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-int search(ac_node* root, const char* str){
-    if(root == NULL) return -1;
-    ac_node* cur = root;
-    for(int i = 0; str[i] != '\0'; ++i){
-        int k = str[i];
-        while(cur != root && cur->next[k] == NULL){
-            cur = cur->fail;
-        }
-        cur = cur->next[k];
-        if(cur == NULL) cur = root;
-        ac_node* temp = cur;
-        while(temp != root){
-            if(temp->id != -1 && visit[temp->id]){
-                break;
-            }
-            if(temp->count > 0){
-                matched = true;
-                visit[temp->id] = true;
-            }
-            temp = temp->fail;
-        }
-    }
-    return 0;
-}
-
-void free_ac(ac_node* root){
-    if(root == NULL) return;
-    for(int i = 0; i < CMAX; ++i){
-        if(root->next[i] != NULL){
-            free_ac(root->next[i]);
-        }
-    }
-    delete root;
-}
-
-char* fgets_wrapper(char* buffer, size_t size, FILE* fp){
-    if(fgets(buffer, size, fp) != 0){
-        int pos = 0;
-        while(buffer[pos] != '\0') ++pos;
-        if(buffer[pos-1] == '\n') buffer[pos-1] = '\0';
-        return buffer;
-    }
-    return NULL;
-}
-
-int main(){
-    int N = 0;
-    char str[MAX_LEN_INPUT];
-    scanf("%d", &N);
-    getchar();
-    ac_node* ac_automata = NULL;
-    for(int i = 0; i < N; ++i){
-        fgets_wrapper(str, MAX_LEN_INPUT, stdin);
-        insert(ac_automata, str, i+1);
-    }
-    build_fail(ac_automata);
-    scanf("%d", &N);
-    getchar();
-    int count = 0;
-    for(int i = 0; i < N; ++i){
-        fgets_wrapper(str, MAX_LEN_INPUT, stdin);
-        matched = false;
-        memset(visit, 0, sizeof(bool)*PMAX);
-        search(ac_automata, str);
-        if(matched){
-            ++count;
-            printf("web %d:", i+1);
-            for(int j = 0; j < PMAX; ++j)
-                if(visit[j])
-                    printf(" %d", j);
-            printf("\n");
-        }
-    }
-    printf("total: %d\n", count);
-    free_ac(ac_automata);
+    cout << "total: "<<total<<endl;
     return 0;
 }
