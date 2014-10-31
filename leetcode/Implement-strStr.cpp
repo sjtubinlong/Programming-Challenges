@@ -1,4 +1,5 @@
 /*
+Problem: Leetcode - Implement strStr()
 Author: 靖难
 Tag: KMP, string match, DFA
 Difficulty: 1 (from 1 to 5)
