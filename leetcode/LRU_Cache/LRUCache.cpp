@@ -1,3 +1,4 @@
+//data-structure application: hash-table, double linked list
 class LRUCache{
 public:
     class Node {
