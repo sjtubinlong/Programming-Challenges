@@ -14,24 +14,33 @@ int solve(string& beads){
     beads += beads;
     int n = beads.size();
     int ans = 0;
-    int n1 = 0, n2 = 0;
-    char pre = 0;
-    for(int i = 0; i < n; i++){
-        if(beads[i] == 'w'){
-            n1++;
-            n2++;
-        }else if(beads[i] == pre){
+    int i = 0;
+    while(i < n) {
+        while(beads[i] == 'w') ++i;
+         int n1 = 0;
+         int j = i - 1;
+         while(j >= 0 && beads[j] == 'w'){
             ++n1;
-            n2 = 0;
-        }else{
-            if(n1 + n2 > ans) ans = n1 + n2;
-            n2 = n1 + 1;
-            n1 = 0;
-            pre = beads[i];
-        }
+            --j;
+         }
+         int k = j;
+         while(k >= 0){
+            if(beads[k] == beads[j] || beads[k] == 'w') ++n1;
+            else break;
+            --k;
+         }
+
+         int n2 = 0;
+         j = i;
+         while(j < n) {
+            if(beads[j] == beads[i] || beads[j] == 'w') ++n2;
+            else break;
+            ++j;
+         }
+         if(n1 + n2 > ans) ans = n1 + n2;
+         ++i;
     }
-    if(n1 + n2 > ans) ans = n1 + n2;
-    return ans;
+    return min(ans, n / 2);
 }
 
 
@@ -40,9 +49,9 @@ int main(){
     ifstream fin ("beads.in");
     int N;
     string beads;
-    cin >> N;
-    cin >> beads;
+    fin >> N;
+    fin >> beads;
     int ans = solve(beads);
-    cout << ans << endl;
+    fout << ans << endl;
     return 0;
 }
