@@ -22,17 +22,15 @@ public:
             }
             return;
         }
-        vector<int> visit(256, 0);
-        
+    
         for(int j = 0; j < 3; ++j){
             if(i + j >= src.size()) break;
             string tip = ip;
             string val;
             int num;
-            if(detect(src, i, i + j, val, num) && !visit[num]){
+            if(detect(src, i, i + j, val, num) ){
                 tip += val;
                 if(dot < 3) tip += "."; 
-                visit[num] = 1;
             }   
             solve(src, i+j+1, dot+1, ans, tip);
         }
