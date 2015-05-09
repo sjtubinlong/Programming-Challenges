@@ -1,3 +1,11 @@
+/*
+1. remove extra spaces in-place using method similar to partion in quicksort
+2. reverse a word (if exist) while find a space or eos
+3. add a sigle space while walk into next word
+
+Actually, its a simple state machine
+
+*/
 void reverse(char* s, int i, int j){
     while(i < j){
         s[i] = s[i] + s[j];
